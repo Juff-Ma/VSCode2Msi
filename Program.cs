@@ -4,13 +4,9 @@ using System.Drawing;
 using System.Drawing.IconLib;
 using System.IO.Compression;
 using System.Net;
-using System.Runtime.InteropServices;
 using VSCode2Msi;
 using WixSharp;
-
-Console.WriteLine($"VSCode2Msi v{typeof(Program).Assembly.GetName().Version.ToNoRevisionString()}");
-Console.WriteLine($"Copyright (C) Juff-Ma {DateTime.Now.Year}, licensed under LGPL 2.1");
-Console.WriteLine();
+using WixSharp.CommonTasks;
 
 await Parser.Default.ParseArguments<Options>(args)
     .WithNotParsed(_ =>
@@ -23,6 +19,13 @@ await Parser.Default.ParseArguments<Options>(args)
 
 static async Task Run(Options options)
 {
+    if (!options.NoLogo)
+    {
+        Console.WriteLine($"VSCode2Msi v{typeof(Program).Assembly.GetName().Version.ToNoRevisionString()}");
+        Console.WriteLine($"Copyright (C) {DateTime.Now.Year} Juff-Ma, licensed under LGPL 2.1");
+        Console.WriteLine();
+    }
+
     if (string.IsNullOrWhiteSpace(options.ArchivePath))
     {
         options.IfVerbose(() => Console.WriteLine($"No archive specified, using \"{Constants.DefaultVSCodeArchiveUrl}\""));
@@ -96,6 +99,58 @@ static async Task Run(Options options)
 
     options.IfVerbose(() => Console.WriteLine("Extracting attributes from vscode executable..."));
     var attributes = FileVersionInfo.GetVersionInfo(codeExe);
+
+    if (string.IsNullOrWhiteSpace(options.OutputPath))
+    {
+        options.OutputPath = Environment.CurrentDirectory + Path.DirectorySeparatorChar + $"VSCode-{attributes.ProductVersion}-x64";
+        options.IfVerbose(() => Console.WriteLine($"No output path specified, using \"{options.OutputPath}\""));
+    }
+    if (!Directory.Exists(Path.GetDirectoryName(options.OutputPath)))
+    {
+        Console.WriteLine($"Error: directory \"{Path.GetDirectoryName(options.OutputPath)}\" does not exist");
+        Environment.Exit(-1);
+    }
+    if (options.OutputPath!.EndsWith(".msi"))
+    {
+        options.OutputPath = options.OutputPath[..^4];
+    }
+
+    options.IfVerbose(() => Console.WriteLine("Configuring msi..."));
+    Project msi = new(attributes.ProductName,
+        new Dir(@"%ProgramFiles%\Microsoft VS Code",
+                new Files(Constants.ArchiveExtractPath + Path.DirectorySeparatorChar + "*.*")));
+
+    msi.ResolveWildCards();
+    msi.FindFile(f => f.Name.EndsWith("Code.exe"))[0]
+        .AddShortcuts(
+            new FileShortcut(attributes.ProductName, "ProgramMenuFolder"),
+            new FileShortcut(attributes.ProductName, "%Desktop%"));
+    msi.MajorUpgradeStrategy = MajorUpgradeStrategy.Default;
+    msi.Add(new EnvironmentVariable("PATH", @"[INSTALLDIR]\bin") { Part = EnvVarPart.last });
+
+    msi.Version = new(attributes.ProductMajorPart, attributes.ProductMinorPart, attributes.ProductBuildPart);
+    msi.Platform = Platform.x64;
+    msi.OutFileName = options.OutputPath;
+    msi.LicenceFile = Constants.ArchiveExtractPath + Path.DirectorySeparatorChar + @"resources\app\LICENSE.rtf";
+
+    msi.GUID = new Guid("fcd5a47f-9d70-4c32-8c3a-ae65c9b17a64");
+
+    msi.ControlPanelInfo.NoModify = true;
+    msi.ControlPanelInfo.Comments = attributes.FileDescription;
+    msi.ControlPanelInfo.Readme = "https://code.visualstudio.com/learn";
+    msi.ControlPanelInfo.HelpLink = "https://code.visualstudio.com/docs";
+    msi.ControlPanelInfo.UrlInfoAbout = "https://code.visualstudio.com";
+    msi.ControlPanelInfo.Manufacturer = attributes.CompanyName;
+    msi.ControlPanelInfo.InstallLocation = "[INSTALLDIR]";
+
+    if (iconFile is not null)
+    {
+        msi.ControlPanelInfo.ProductIcon = iconFile;
+    }
+
+    Console.Write("Building msi...");
+    Compiler.BuildMsi(msi);
+    Console.WriteLine(" Done.");
 }
 
 static string? ExtractIconFile(string path)

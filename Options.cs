@@ -9,6 +9,9 @@ internal class Options
 
     [Option('o', "output", HelpText = "Path to output MSI file")]
     public string? OutputPath { get; set; }
+
+    [Option("nologo", Default = false, HelpText = "Don't display copyright")]
+    public bool NoLogo { get; set; }
 #if DEBUG
     [Option('v', "verbose", Default = true, HelpText = "Verbose output")]
 #else
