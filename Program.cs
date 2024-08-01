@@ -24,7 +24,7 @@ static async Task Run(Options options)
         options.ArchivePath = Constants.DefaultVSCodeArchiveUrl;
     }
 
-    if (Uri.TryCreate(options.ArchivePath, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+    if (Uri.TryCreate(options.ArchivePath, UriKind.Absolute, out var uri))
     {
         options.IfVerbose(() => Console.Write($"Downloading archive from {options.ArchivePath} "));
         var filename = Path.GetTempPath() + Path.DirectorySeparatorChar + "VSCode2Msi-archive-" + Guid.NewGuid() + ".zip";
