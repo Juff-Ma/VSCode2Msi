@@ -8,4 +8,5 @@ internal static class Constants
 
     public static readonly string ArchiveDownloadPath = Path.GetTempPath() + Path.DirectorySeparatorChar + "VSCode2Msi-archive-" + Guid.NewGuid() + ".zip";
     public static readonly string ArchiveExtractPath = Path.GetTempPath() + Path.DirectorySeparatorChar + "VSCode2Msi-extracted";
+    public static readonly string VSCodeIconPath = Path.GetTempPath() + Path.DirectorySeparatorChar + "VSCode2Msi-vscode.ico";
 }
