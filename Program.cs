@@ -22,7 +22,7 @@ static async Task Run(Options options)
     if (!options.NoLogo)
     {
         Console.WriteLine($"VSCode2Msi v{typeof(Program).Assembly.GetName().Version.ToNoRevisionString()}");
-        Console.WriteLine($"Copyright (C) {DateTime.Now.Year} Juff-Ma, licensed under LGPL 2.1");
+        Console.WriteLine($"Copyright (C) {DateTime.Now.Year} VSCode2Msi, licensed under LGPL 2.1");
         Console.WriteLine();
     }
 
