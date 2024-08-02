@@ -1,6 +1,6 @@
 # VSCode2Msi
 ### What?
-VSCode2Msi is a tool for creating a Windows Installer (MSI) package from official microsoft releases.
+VSCode2Msi is a tool for creating a Windows Installer (MSI) package from official microsoft VSCode releases.
 ### Why?
 Microsoft doesn't publish MSIs for VSCode but some people prefer or require MSI installers (eg. GPO deployment).
 ### How?
@@ -14,9 +14,9 @@ VSCode2Msi repackages a zip release of VSCode using WiX.
 ### Installation
 - Install the WiX command line: https://wixtoolset.org/docs/intro/
 - Install the WixToolset.UI extension: `wix extension add -g WixToolset.UI.wixext`
-- Download VSCode2Msi from the releases page or build it from source
+- Download VSCode2Msi from the [releases page](https://github.com/Juff-Ma/VSCode2Msi/releases/latest) or build it from source
 ### Building the MSI
-Just run `VSCode2Msi.exe`, this should download VSCode build the msi in the current directory, for advanced options run `VSCode2Msi.exe --help`
+Just run `VSCode2Msi.exe`, this should download VSCode and build the msi in the current directory, for advanced options run `VSCode2Msi.exe --help`
 
 ### Limitations
 - Arm64 is currently untested and the current configuration is propably incompatible, though it could work with slight modifications. (eg. change platform attribute and use different zip file)
