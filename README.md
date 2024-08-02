@@ -10,7 +10,7 @@ VSCode2Msi repackages a zip release of VSCode using WiX.
 ### Requirements
 - A recent WiX version, both 4 and 5 should work
 - WixToolset.UI extension
-- A recent Windows version with dotnet framework 4.7.2 (mono on linux _could_ work, but it's untested and not recommended)
+- A recent Windows version with dotnet framework 4.7.2
 ### Installation
 - Install the WiX command line: https://wixtoolset.org/docs/intro/
 - Install the WixToolset.UI extension: `wix extension add -g WixToolset.UI.wixext`
