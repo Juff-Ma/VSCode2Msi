@@ -12,11 +12,11 @@
 	<ItemGroup>
 		<PackageReference Include="CommandLineParser" Version="2.9.1" />
 		<PackageReference Include="IconLib.Unofficial" Version="0.73.0" />
-		<PackageReference Include="PolySharp" Version="1.14.1">
+		<PackageReference Include="PolySharp" Version="1.15.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="WixSharp_wix4" Version="2.3.0" />
+		<PackageReference Include="WixSharp_wix4.bin" Version="2.8.0" />
 	</ItemGroup>
 
 </Project>
