@@ -1,7 +1,6 @@
 ﻿using CommandLine;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.IconLib;
 using System.IO.Compression;
 using System.Net;
 using VSCode2Msi;
@@ -31,8 +30,8 @@ static async Task Run(Options options)
     // check if archive is specified
     if (string.IsNullOrWhiteSpace(options.ArchivePath))
     {
-        options.IfVerbose(() => Console.WriteLine($"No archive specified, using \"{Constants.DefaultVSCodeArchiveUrl}\""));
-        options.ArchivePath = Constants.DefaultVSCodeArchiveUrl;
+        options.IfVerbose(() => Console.WriteLine($"No archive specified, using \"{Constants.DefaultVsCodeArchiveUrl}\""));
+        options.ArchivePath = Constants.DefaultVsCodeArchiveUrl;
     }
 
     // check if archive is a URL, and if so, download it
@@ -43,7 +42,7 @@ static async Task Run(Options options)
         var filename = Constants.ArchiveDownloadPath;
         options.IfVerbose(() => Console.WriteLine($"to \"{filename}\""));
 
-        using WebClient webClient = new();
+        using WebClient webClient = new(); //TODO: replace with HttpClient
 
         // this is stupid but it works
         object locker = new();
@@ -176,25 +175,21 @@ static async Task Run(Options options)
 
 static string? ExtractIconFile(string path)
 {
-    try
-    {
-        // we try to use IconLib first
-        MultiIcon multiIcon = [];
-        multiIcon.Load(path);
-        multiIcon.Save(Constants.VSCodeIconPath, MultiIconFormat.ICO);
-    }
-    catch
-    {
-        Console.WriteLine("Warning: failed to extract icon via IconLib, falling back to System.Drawing");
-        // if this fails we try to use System.Drawing, this icon won't be as good but it's better than nothing
-        using var icon = Icon.ExtractAssociatedIcon(path);
+    var icon = Icon.ExtractIcon(path, 0);
 
+    if (icon is null)
+    {
+        Console.WriteLine("Warning: high quality icon extraction failed, falling pack to low quality");
+        // use lower quality icon extraction if ExtractIcon fails
+        icon = Icon.ExtractAssociatedIcon(path);
+
+        // if this also fails we just skip the icon extraction
         if (icon is null)
-        {
             return null;
-        }
-        using var stream = System.IO.File.OpenWrite(Constants.VSCodeIconPath);
-        icon.Save(stream);
     }
-    return Constants.VSCodeIconPath;
+    using var stream = System.IO.File.OpenWrite(Constants.VsCodeIconPath);
+    icon.Save(stream);
+    icon.Dispose();
+
+    return Constants.VsCodeIconPath;
 }
