@@ -4,6 +4,12 @@ namespace VSCode2Msi;
 
 internal class Options
 {
+#if DEBUG
+    private const bool Debug = true;
+#else
+    private const bool Debug = false;
+#endif
+
     [Option('a', "archive", HelpText = "Path to VSCode archive, can be url or local path")]
     public string? ArchivePath { get; set; }
 
@@ -12,11 +18,9 @@ internal class Options
 
     [Option("nologo", Default = false, HelpText = "Don't display copyright")]
     public bool NoLogo { get; set; }
-#if DEBUG
-    [Option('v', "verbose", Default = true, HelpText = "Verbose output")]
-#else
-    [Option('v', "verbose", Default = false, HelpText = "Verbose output")]
-#endif
+
+    [Option('v', "verbose", Default = Debug, HelpText = "Verbose output")]
+
     public bool Verbose { get; set; }
 
     public void IfVerbose(Action action)
