@@ -2,10 +2,10 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO.Compression;
-using System.Net;
 using VSCode2Msi;
 using WixSharp;
 using WixSharp.CommonTasks;
+using File = System.IO.File;
 
 await Parser.Default.ParseArguments<Options>(args)
     .WithNotParsed(errors =>
@@ -38,32 +38,44 @@ static async Task Run(Options options)
     options.IfVerbose(() => Console.WriteLine("Checking if archive should be downloaded..."));
     if (Uri.TryCreate(options.ArchivePath, UriKind.Absolute, out var uri))
     {
-        options.IfVerbose(() => Console.Write($"Downloading archive from \"{options.ArchivePath}\" "));
         var filename = Constants.ArchiveDownloadPath;
-        options.IfVerbose(() => Console.WriteLine($"to \"{filename}\""));
+        options.IfVerbose(() => Console.WriteLine($"Downloading archive from \"{options.ArchivePath}\" to \"{filename}\"... "));
 
-        using WebClient webClient = new(); //TODO: replace with HttpClient
+        using HttpClient client = new();
+        await using var file = File.OpenWrite(filename);
 
-        // this is stupid but it works
-        object locker = new();
-        webClient.DownloadProgressChanged += (_, e) =>
+        using var response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+
+        if (response.Content.Headers.ContentLength is {} contentLength)
         {
-            lock (locker)
-            {
-                Console.Write($"\rDownloading... {e.ProgressPercentage}%");
-                options.IfVerbose(() => Console.Write($" ({e.BytesReceived}/{e.TotalBytesToReceive})"));
-            }
-        };
-        webClient.DownloadFileCompleted += (_, e) => { lock (locker) { Console.WriteLine(" Done."); } };
+            await using var stream = await response.Content.ReadAsStreamAsync();
 
-        // download file
-        await webClient.DownloadFileTaskAsync(uri, filename);
+
+            var buffer = new byte[1024 * 8];
+            long totalRead = 0;
+            int read;
+
+            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                await file.WriteAsync(buffer, 0, read);
+                totalRead += read;
+                var progress = (int)((totalRead * 100) / contentLength);
+                Console.Write($"\rDownloading... {progress}% ");
+                options.IfVerbose(() => Console.Write($"({totalRead}/{contentLength}) "));
+            }
+        }
+        else
+        {
+            await response.Content.CopyToAsync(file);
+        }
+
+        Console.WriteLine("Done downloading.");
 
         options.ArchivePath = filename;
     }
 
     options.IfVerbose(() => Console.WriteLine("Checking if archive exists..."));
-    if (!System.IO.File.Exists(options.ArchivePath))
+    if (!File.Exists(options.ArchivePath))
     {
         Console.WriteLine($"Error: archive not found at \"{options.ArchivePath}\"");
         Environment.Exit(-1);
@@ -86,13 +98,13 @@ static async Task Run(Options options)
     if (options.ArchivePath == Constants.ArchiveDownloadPath)
     {
         options.IfVerbose(() => Console.WriteLine("Removing unneeded archive..."));
-        System.IO.File.Delete(options.ArchivePath);
+        File.Delete(options.ArchivePath);
     }
 
     // locating vscode executable
     var codeExe = Path.Combine(Constants.ArchiveExtractPath, "Code.exe");
     options.IfVerbose(() => Console.WriteLine("Checking for vscode executable..."));
-    if (!System.IO.File.Exists(codeExe))
+    if (!File.Exists(codeExe))
     {
         Console.WriteLine("Error: vscode executable not found");
         Environment.Exit(-1);

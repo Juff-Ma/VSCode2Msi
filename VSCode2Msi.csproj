@@ -9,8 +9,8 @@
 
 		<PublishSingleFile>true</PublishSingleFile>
 		<PublishSelfContained>false</PublishSelfContained>
+		<PublishReadyToRun>false</PublishReadyToRun>
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-		<PublishReadyToRun>true</PublishReadyToRun>
 		<DebugType>embedded</DebugType>
 
 		<NoWarn>S1075</NoWarn>
