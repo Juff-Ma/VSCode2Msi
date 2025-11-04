@@ -174,6 +174,9 @@ static async Task Run(Options options)
     msi.ControlPanelInfo.Manufacturer = attributes.CompanyName;
     msi.ControlPanelInfo.InstallLocation = "[INSTALLDIR]";
 
+    // Fix WixUI dependency
+    msi.UI = WUI.WixUI_ProgressOnly;
+
     // if icon file was extracted use it as product icon
     if (iconFile is not null)
     {
