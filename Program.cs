@@ -160,7 +160,13 @@ static async Task Run(Options options)
     msi.Version = new(attributes.ProductMajorPart, attributes.ProductMinorPart, attributes.ProductBuildPart);
     msi.Platform = Platform.x64;
     msi.OutFileName = options.OutputPath;
-    msi.LicenceFile = Constants.ArchiveExtractPath + Path.DirectorySeparatorChar + @"resources\app\LICENSE.rtf";
+
+    var license = msi.FindFile(f => f.Name.EndsWith("LICENSE.rtf"))[0].Name;
+    if (!string.IsNullOrWhiteSpace(license) && File.Exists(license))
+    {
+        options.IfVerbose(() => Console.WriteLine($"Found license file at \"{license}\""));
+        msi.LicenceFile = license;
+    }
 
     // set GUID of installer
     msi.GUID = new Guid("fcd5a47f-9d70-4c32-8c3a-ae65c9b17a64");
