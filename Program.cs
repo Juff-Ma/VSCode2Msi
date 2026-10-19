@@ -90,7 +90,7 @@ static async Task Run(Options options)
     }
 
     Console.Write("Extracting archive...");
-    ZipFile.ExtractToDirectory(options.ArchivePath, Constants.ArchiveExtractPath);
+    await ZipFile.ExtractToDirectoryAsync(options.ArchivePath, Constants.ArchiveExtractPath);
     Console.WriteLine(" Done.");
     options.IfVerbose(() => Console.WriteLine($"Archive extracted to \"{Constants.ArchiveExtractPath}\""));
 
