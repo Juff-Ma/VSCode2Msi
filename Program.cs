@@ -144,7 +144,17 @@ static async Task Run(Options options)
     // base structure
     Project msi = new(attributes.ProductName,
         new Dir(@"%ProgramFiles%\Microsoft VS Code",
-                new Files(Constants.ArchiveExtractPath + Path.DirectorySeparatorChar + "*.*")));
+                new Files(Constants.ArchiveExtractPath + Path.DirectorySeparatorChar + "*.*")))
+    {
+        // install for all users
+        Scope = InstallScope.perMachine
+    };
+
+    // force machine install per launch condition
+    msi.LaunchConditions.Add(
+        new LaunchCondition(
+            "ALLUSERS = 1",
+            "This package requires a per-machine installation. Do not override ALLUSERS."));
 
     msi.ResolveWildCards();
     // add desktop and app menu shortcuts
@@ -154,7 +164,7 @@ static async Task Run(Options options)
             new FileShortcut(attributes.ProductName, "%Desktop%"));
     msi.MajorUpgradeStrategy = MajorUpgradeStrategy.Default;
     // add vscode binaries to PATH
-    msi.Add(new EnvironmentVariable("PATH", @"[INSTALLDIR]\bin") { Part = EnvVarPart.last });
+    msi.Add(new EnvironmentVariable("PATH", @"[INSTALLDIR]\bin") { Part = EnvVarPart.last, System = true });
 
     // basic attributes
     msi.Version = new(attributes.ProductMajorPart, attributes.ProductMinorPart, attributes.ProductBuildPart);
